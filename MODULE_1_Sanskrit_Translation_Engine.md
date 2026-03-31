@@ -1,139 +1,156 @@
-# Sanskrit Translation AI - Architecture & Development Plan
+# Sanskrit Translation AI - Learning System Architecture & Development Plan
 
 ## 1. Problem Statement
 
-Develop a local AI system to translate Sanskrit text into: - English -
-Hindi - Marathi
-
-Constraints: - Runs offline on a laptop - Extensible for future AI
-features
+Build a local AI system that: - Translates Sanskrit → English / Hindi /
+Marathi - Learns from user corrections over time - Works fully offline
 
 ------------------------------------------------------------------------
 
-## 2. Architecture Overview
+## 2. Core Concept: Human-in-the-Loop Learning
 
-### Components:
+Flow:
 
-1.  User Interface (CLI / Web UI)
-2.  Input Processor
-3.  Translation Engine
-4.  Post Processor
-5.  Output Formatter
+    Sanskrit → Model Translation → User Correction → Store → Learn → Improve
 
 ------------------------------------------------------------------------
 
-## 3. Model Strategy
+## 3. Updated Architecture
 
-### Recommended Model:
-
--   IndicTrans2 (best for Indian languages)
-
-### Alternatives:
-
--   mBART50
--   NLLB-200
-
-------------------------------------------------------------------------
-
-## 4. Component Design
-
-### Input Processor
-
--   Text normalization
--   Noise removal
--   Sanskrit handling (Devanagari)
-
-### Translation Engine
-
--   Tokenization
--   Model inference
--   Decoding
-
-### Post Processor
-
--   Grammar correction
--   Refinement
-
-### Output Layer
-
--   CLI / JSON / UI output
+                    ┌──────────────────────┐
+                    │   User Interface     │
+                    └─────────┬────────────┘
+                              │
+                    ┌─────────▼────────────┐
+                    │  Input Processor     │
+                    └─────────┬────────────┘
+                              │
+                    ┌─────────▼────────────┐
+                    │ Translation Engine   │
+                    └─────────┬────────────┘
+                              │
+                    ┌─────────▼────────────┐
+                    │  Feedback Engine⭐   │
+                    │ (Store corrections)  │
+                    └─────────┬────────────┘
+                              │
+            ┌─────────────────▼─────────────────┐
+            │      Learning System              │
+            │ 1. Memory (Exact match)           │
+            │ 2. Semantic Search (Embeddings)   │
+            │ 3. RAG Layer                      │
+            │ 4. Fine-tuning (future)           │
+            └───────────────────────────────────┘
 
 ------------------------------------------------------------------------
 
-## 5. Local Setup
+## 4. Learning Approaches
 
-### Requirements:
+### 4.1 Correction Memory (Phase 1)
 
--   Python 3.10+
--   16GB RAM (recommended)
+-   Store corrected translations
+-   Use exact + fuzzy matching
 
-### Project Structure:
+Example:
 
-    project/
-      models/
-      data/
-      src/
+    Input: धर्मो रक्षति रक्षितः
+    Correct: Dharma protects those who protect it
 
 ------------------------------------------------------------------------
 
-## 6. Development Plan
+### 4.2 Semantic Search (Phase 2)
 
-### Phase 1 (Week 1--2)
+-   Use embeddings
+-   Find similar sentences
 
--   Setup environment
--   Load IndicTrans2
--   Basic translation script
+Libraries: - sentence-transformers - FAISS
 
-### Phase 2 (Week 2--3)
+------------------------------------------------------------------------
 
--   Modular architecture
+### 4.3 RAG (Phase 3)
 
-### Phase 3 (Week 3--4)
+-   Inject past corrections as context
+-   Improves generalization
 
--   UI (Streamlit / Flask)
+------------------------------------------------------------------------
+
+### 4.4 Fine-Tuning (Phase 4)
+
+-   Train model on corrected dataset
+-   Use LoRA / HuggingFace Trainer
+
+------------------------------------------------------------------------
+
+## 5. Data Storage Design
+
+### Table: corrections
+
+  id   input_text   corrected_translation   embedding
+  ---- ------------ ----------------------- -----------
+
+------------------------------------------------------------------------
+
+## 6. Similarity Logic
+
+-   Cosine similarity
+-   Thresholds:
+    -   0.85 → strong match
+    -   0.70 → partial match
+
+------------------------------------------------------------------------
+
+## 7. Enhanced Learning
+
+### Word-Level Memory
+
+    धर्म → Dharma
+
+### Phrase-Level Memory
+
+    रक्षति → protects
+
+### Context Tagging
+
+    domain: spiritual / poetic / legal
+
+------------------------------------------------------------------------
+
+## 8. Development Plan
+
+### Phase 1
+
+-   Basic translator
+-   Correction storage (SQLite/JSON)
+
+### Phase 2
+
+-   Embeddings + similarity search
+
+### Phase 3
+
+-   RAG integration
+    
+    - Instead of only depenging on the model, RAG will retrieve relevant past knowledge (your corrections)
+    - Feed it to the model as context
+    - Generate a better translation
 
 ### Phase 4
 
--   Accuracy improvements
--   Custom datasets
-
-### Phase 5
-
--   Advanced features (RAG, commentary)
+-   Fine-tuning
 
 ------------------------------------------------------------------------
 
-## 7. Challenges & Solutions
-
-  Challenge        Solution
-  ---------------- ----------------------
-  Ambiguity        Context-aware models
-  Compound words   Preprocessing
-  Accuracy         Fine-tuning
-  Performance      Quantization
-
-------------------------------------------------------------------------
-
-## 8. Tech Stack
+## 9. Tech Stack
 
 -   Python
 -   PyTorch
--   HuggingFace
--   Streamlit
+-   HuggingFace Transformers
+-   FAISS
+-   SQLite
 
 ------------------------------------------------------------------------
 
-## 9. Future Vision
+## 10. Vision
 
--   Sanskrit Intelligence Engine
--   Translation + Meaning
--   Voice input
--   Spiritual AI assistant
-
-------------------------------------------------------------------------
-
-## 10. Strategy
-
-Start simple: - Local translator
-
-Then evolve: - Full AI Sanskrit platform
+Build a: **Self-Learning Sanskrit Intelligence Engine** - Translation -
+Meaning extraction - Context awareness - Spiritual insights
