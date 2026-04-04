@@ -1,0 +1,10 @@
+Commands:
+
+python.exe -m pip install --upgrade pip --user
+pip install torch transformers sentencepiece sqlite3
+
+python -m venv indec_env
+.\indec_env\Scripts\Activate.ps1
+pip install torch transformers sentencepiece sacremoses indic-nlp-library
+
+
