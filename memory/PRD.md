@@ -34,24 +34,39 @@ an LLM. Storage must be local.
 
 ## Implemented (2026-02)
 
-- `POST /api/translate` multi-language response with confidence + source.
+- `POST /api/translate` multi-language response with confidence + source
+  (`correction` | `llm` | `offline`). Request accepts optional
+  `offline_mode: bool` to route through on-device NLLB-200.
 - `POST /api/feedback/v2` captures 👍 / 👎 + corrections and persists the
   override.
 - `GET/DELETE /api/history` with rich items incl. feedback map.
 - `GET /api/corrections` and `GET /api/corrections/check`.
+- `POST /api/transcribe` — Whisper-1 speech-to-text (via Emergent LLM key)
+  accepting webm/mp3/wav up to 25 MB, Hindi/Devanagari prompt bias.
+- `GET /api/offline/status`, `POST /api/offline/warmup` — on-device engine
+  status + lazy model loader (first call downloads ~2.4 GB into
+  `~/.cache/huggingface`).
 - Single-page UI: asymmetric 12-col bento grid, Indic light / jewel dark
   themes, sticky glass header with history drawer + theme toggle.
 - Translation cards with confidence progress bar, copy button, thumbs up/down,
-  inline correction composer.
+  inline correction composer, `learned` / `on-device` source badges.
+- **Voice input** (P1): mic button in input panel uses Web Speech API for
+  instant browser transcription (Hindi / Devanagari) with automatic fallback
+  to Whisper (`/api/transcribe`) when unavailable. Appends to current input.
+- **Offline mode** (P2 → moved to P0): switch in input panel toggles between
+  cloud (Claude Sonnet 4.5) and on-device (NLLB-200-distilled-600M). First
+  enablement warms up the model with a toast; correction-override still wins
+  over both modes.
 - Google Fonts: Cormorant Garamond (display), Outfit (body), Noto Sans
   Devanagari (Sanskrit/Hindi/Marathi output).
 - JSON-file persistence (no DB).
 
 ## Backlog
 
-- **P1** Voice/audio input for Sanskrit (future scope).
 - **P1** Export corrections dataset (CSV/JSON download).
-- **P2** Phrase-level incremental fine-tuning (currently only exact-match
-  overrides).
+- **P1** Phrase-level / fuzzy matching for corrections (currently exact-match
+  only).
+- **P2** Progress bar for offline model download (currently a toast).
+- **P2** Switch to env-configurable offline model id so upgrades to NLLB-1.3B
+  / IndicTrans2-gated (with HF token) are one-line changes.
 - **P2** Multi-user profiles.
-- **P2** Offline/on-device inference (fully offline mode).
