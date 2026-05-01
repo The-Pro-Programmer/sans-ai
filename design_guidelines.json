@@ -1,0 +1,84 @@
+{
+  "theme": "Light and Dark Mode enabled",
+  "archetype": "Archetype 1 (Organic & Earthy) for Light, Archetype 5 (Jewel & Luxury) for Dark",
+  "colors": {
+    "light": {
+      "background": "#FDFBF7",
+      "surface": "#FFFFFF",
+      "primary": "#D35400",
+      "text": "#111111",
+      "text_secondary": "#555555",
+      "border": "#E5E0D8"
+    },
+    "dark": {
+      "background": "#090A0F",
+      "surface": "#12141D",
+      "primary": "#D4AF37",
+      "text": "#E8E3D9",
+      "text_secondary": "#A09B90",
+      "border": "#222532"
+    }
+  },
+  "typography": {
+    "headings": "Cormorant Garamond",
+    "body": "Outfit",
+    "sanskrit_text": "Noto Sans Devanagari",
+    "scale": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-none",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight",
+      "body": "text-base leading-relaxed",
+      "labels": "text-xs tracking-[0.2em] uppercase"
+    }
+  },
+  "layout_strategy": {
+    "spacing": "Generous Spacing (p-6, p-8 for containers)",
+    "grid": "Asymmetric Bento Grid (grid-cols-1 lg:grid-cols-12 gap-8)",
+    "structure": [
+      "Header: Crystal Glassmorphism, sticky top, flex-between. Contains Logo (typography-based) and Dark Mode Toggle.",
+      "Main Area: grid-cols-1 lg:grid-cols-12 layout.",
+      "Input Area (Sanskrit): Spans col-span-5. Tall, seamless textarea with generous p-8 padding. Uses flat background with a 1px solid subtle border to ground it.",
+      "Output Area: Spans col-span-7. Composed of 3 stacked horizontal cards (Marathi, Hindi, English). Each card uses a 1px solid border, flat surface. Includes translation text, confidence bar (thin, h-1), and utility icon row (copy, feedback).",
+      "History Section: Rendered as a Shadcn Sheet (Drawer) triggered from a 'History' button in the Header to keep the main view uncluttered."
+    ]
+  },
+  "components": {
+    "buttons": "Shadcn Button heavily customized. Primary button (Translate) gets a solid primary fill with sharp 0px radius.",
+    "inputs": "Shadcn Textarea for inputs. Overridden to remove default focus rings. Custom focus: focus:border-primary focus:bg-surface.",
+    "progress": "Shadcn Progress used for Confidence Score. Height overridden to h-1. Color mapped to primary.",
+    "feedback": "Shadcn Popover or Collapsible for 'Correction Input' revealing an input field when thumbs down is clicked."
+  },
+  "motion": {
+    "hover": "Subtle -translate-y-1 on output cards. Opacity transitions on utility icons.",
+    "transitions": "transition-all duration-300 ease-in-out for background color shifts (dark/light toggle)."
+  },
+  "icons_and_assets": {
+    "library": "lucide-react",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1754129534696-ec82db23e957?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwyfHxhbmNpZW50JTIwbWFudXNjcmlwdCUyMGluZGlhfGVufDB8fHx8MTc3NzY1NzE5MHww&ixlib=rb-4.1.0&q=85",
+        "category": "background_texture",
+        "description": "Ancient inscriptions used as a very low opacity (3-5%) background texture overlay on the body via a fixed pseudo-element, adding subtle Indic depth."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1657562690244-1885a25280b6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjB0ZW1wbGUlMjBhcmNoaXRlY3R1cmUlMjBtaW5pbWFsaXN0fGVufDB8fHx8MTc3NzY1NzE5MHww&ixlib=rb-4.1.0&q=85",
+        "category": "hero_accent",
+        "description": "Used in the empty state of the translation output area. A moody, cropped image to fill the negative space before a translation is performed."
+      }
+    ]
+  },
+  "accessibility": {
+    "contrast": "APCA contrast rules applied. Text must meet 4.5:1 ratio.",
+    "test_ids": "Mandatory data-testid on all interactive elements: language-selector, translate-btn, copy-btn, thumbs-up-btn, thumbs-down-btn, theme-toggle, history-btn, sanskrit-input, correction-input."
+  },
+  "instructions_to_main_agent": [
+    "Use Vite with React and JS (not TS).",
+    "Install required libraries: lucide-react, clsx, tailwind-merge.",
+    "Install Shadcn components: button, textarea, progress, sheet, popover, input.",
+    "Set up Tailwind dark mode class strategy using a Context Provider.",
+    "Import Google Fonts: 'Cormorant Garamond', 'Outfit', 'Noto Sans Devanagari' in index.css.",
+    "Implement the Layout Strategy EXACTLY as specified. Use the asymmetric grid (col-span-5 vs col-span-7).",
+    "Apply `data-testid` to every interactive element.",
+    "Apply 'Cormorant Garamond' for all headings and branding.",
+    "Ensure the Translation Output cards stack gracefully on mobile."
+  ]
+}
