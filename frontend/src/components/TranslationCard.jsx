@@ -98,6 +98,14 @@ export const TranslationCard = ({ result, itemId, onFeedback, delay = 0 }) => {
                         learned
                     </span>
                 )}
+                {result.source === "offline" && (
+                    <span
+                        data-testid={`source-badge-${result.language}`}
+                        className="label-tiny inline-flex items-center gap-1 border border-border px-2 py-1 text-muted-foreground"
+                    >
+                        on-device
+                    </span>
+                )}
             </div>
 
             <p

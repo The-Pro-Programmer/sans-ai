@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import List, Literal, Optional
 
 from dotenv import load_dotenv
-from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 from starlette.middleware.cors import CORSMiddleware
 
@@ -29,6 +29,8 @@ from translator import (  # noqa: E402  (load env first)
     save_correction,
     translate,
 )
+from stt import transcribe_bytes  # noqa: E402
+import translator_offline  # noqa: E402
 
 app = FastAPI(title="Sanskrit Translator API", version="1.0.0")
 api_router = APIRouter(prefix="/api")
@@ -42,13 +44,14 @@ SUPPORTED_LANGS: List[Language] = ["marathi", "hindi", "english"]
 class TranslateRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=4000)
     target_langs: Optional[List[Language]] = None  # default: all three
+    offline_mode: bool = False
 
 
 class TranslationResult(BaseModel):
     language: Language
     translation: str
     confidence: float
-    source: Literal["correction", "llm"]
+    source: Literal["correction", "llm", "offline"]
 
 
 class HistoryItem(BaseModel):
@@ -101,21 +104,37 @@ async def api_translate(req: TranslateRequest):
     results: List[TranslationResult] = []
     for lang in langs:
         try:
-            out = await translate(text, lang)
+            # correction override always wins
+            override = get_correction(text, lang)
+            if override is not None:
+                results.append(TranslationResult(
+                    language=lang,
+                    translation=override,
+                    confidence=100.0,
+                    source="correction",
+                ))
+                continue
+
+            if req.offline_mode:
+                out = await translator_offline.translate(text, lang)
+                source = "offline"
+            else:
+                out = await translate(text, lang)
+                source = out["source"]
         except Exception as e:  # surface a per-language error as low-confidence
             logging.exception("translation failed for %s", lang)
             results.append(TranslationResult(
                 language=lang,
                 translation=f"[Translation failed: {e}]",
                 confidence=0.0,
-                source="llm",
+                source="offline" if req.offline_mode else "llm",
             ))
             continue
         results.append(TranslationResult(
             language=lang,
             translation=out["translation"],
             confidence=round(float(out["confidence"]), 1),
-            source=out["source"],
+            source=source,
         ))
 
     item = {
@@ -201,6 +220,49 @@ async def api_corrections():
 async def api_corrections_check(text: str, language: Language):
     value = get_correction(text, language)
     return {"has_override": value is not None, "correction": value}
+
+
+# ---------- voice input ----------
+
+@api_router.post("/transcribe")
+async def api_transcribe(
+    audio: UploadFile = File(...),
+    language: str = "hi",
+):
+    """Transcribe a short Devanagari audio clip via OpenAI Whisper."""
+    data = await audio.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty audio payload")
+    if len(data) > 25 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Audio must be <= 25 MB")
+
+    filename = audio.filename or "audio.webm"
+    try:
+        text = await transcribe_bytes(data, filename=filename, language=language)
+    except Exception as e:
+        logging.exception("transcription failed")
+        raise HTTPException(status_code=502, detail=f"Transcription failed: {e}")
+
+    return {"text": text}
+
+
+# ---------- offline mode (IndicTrans2) ----------
+
+@api_router.get("/offline/status")
+async def api_offline_status():
+    return translator_offline.status()
+
+
+@api_router.post("/offline/warmup")
+async def api_offline_warmup():
+    """Trigger the first-run model download/load. May take minutes."""
+    if not translator_offline.is_available():
+        raise HTTPException(
+            status_code=503,
+            detail="Offline dependencies not installed (torch/transformers/IndicTransToolkit).",
+        )
+    await translator_offline.ensure_loaded()
+    return translator_offline.status()
 
 
 app.include_router(api_router)

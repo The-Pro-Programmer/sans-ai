@@ -235,6 +235,127 @@ class TestCorrectionsLearning:
         assert found
 
 
+# ---------- voice input (/api/transcribe) ----------
+
+class TestTranscribe:
+    def test_transcribe_missing_audio_returns_422(self, session):
+        # No file attached -> FastAPI 422 (field required)
+        r = requests.post(f"{API}/transcribe", timeout=15)
+        assert r.status_code == 422
+
+    def test_transcribe_empty_audio_returns_400(self):
+        # Zero-byte audio file — handler checks `if not data` -> 400
+        files = {"audio": ("empty.webm", b"", "audio/webm")}
+        r = requests.post(f"{API}/transcribe", files=files, timeout=15)
+        assert r.status_code == 400, r.text
+        assert "Empty" in r.json().get("detail", "") or "empty" in r.json().get("detail", "").lower()
+
+
+# ---------- offline mode (NLLB-200) ----------
+
+class TestOfflineMode:
+    def test_offline_status(self, session):
+        # Ensure model is loaded (idempotent — already loaded returns immediately)
+        session.post(f"{API}/offline/warmup", json={}, timeout=600)
+        r = session.get(f"{API}/offline/status", timeout=15)
+        assert r.status_code == 200
+        d = r.json()
+        assert d["available"] is True
+        assert d["loaded"] is True
+        assert d["error"] is None
+        assert d["model_id"] == "facebook/nllb-200-distilled-600M"
+
+    def test_offline_warmup_idempotent(self, session):
+        t0 = time.time()
+        r = session.post(f"{API}/offline/warmup", json={}, timeout=60)
+        dt = time.time() - t0
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert d["loaded"] is True
+        # Already loaded -> should return quickly
+        assert dt < 15, f"warmup took {dt:.1f}s, expected <15s when loaded"
+
+    def test_offline_translate_english(self, session):
+        text = f"सत्यमेव जयते {uuid.uuid4().hex[:6]}"
+        r = session.post(
+            f"{API}/translate",
+            json={"text": text, "target_langs": ["english"], "offline_mode": True},
+            timeout=120,
+        )
+        assert r.status_code == 200, r.text
+        res = r.json()["results"]
+        assert len(res) == 1
+        assert res[0]["language"] == "english"
+        assert res[0]["source"] == "offline"
+        assert isinstance(res[0]["translation"], str) and res[0]["translation"].strip()
+        assert res[0]["confidence"] > 0
+
+    def test_offline_translate_all_three_langs(self, session):
+        text = f"विद्या ददाति विनयम् {uuid.uuid4().hex[:6]}"
+        r = session.post(
+            f"{API}/translate",
+            json={"text": text, "offline_mode": True},
+            timeout=300,
+        )
+        assert r.status_code == 200, r.text
+        results = r.json()["results"]
+        langs = sorted(x["language"] for x in results)
+        assert langs == ["english", "hindi", "marathi"]
+        for res in results:
+            assert res["source"] == "offline", f"{res['language']} source was {res['source']}"
+            assert res["translation"].strip()
+            assert res["confidence"] > 0
+
+    def test_offline_correction_overrides_offline(self, session):
+        # Seed correction via negative feedback in LLM mode, then verify
+        # offline_mode=True still returns source='correction' for identical text.
+        text = f"धर्मो रक्षति रक्षितः {uuid.uuid4().hex[:6]}"
+        tr = session.post(
+            f"{API}/translate",
+            json={"text": text, "target_langs": ["english"]},
+            timeout=120,
+        )
+        assert tr.status_code == 200
+        iid = tr.json()["id"]
+
+        corrected = "Dharma protects those who protect it (TEST_OFFLINE_OVERRIDE)"
+        fb = session.post(
+            f"{API}/feedback",
+            json={
+                "item_id": iid,
+                "language": "english",
+                "is_correct": False,
+                "correction": corrected,
+            },
+            timeout=15,
+        )
+        assert fb.status_code == 200
+
+        # Now translate with offline_mode=True -> correction should win
+        tr2 = session.post(
+            f"{API}/translate",
+            json={"text": text, "target_langs": ["english"], "offline_mode": True},
+            timeout=60,
+        )
+        assert tr2.status_code == 200
+        res = tr2.json()["results"][0]
+        assert res["source"] == "correction"
+        assert res["translation"] == corrected
+        assert res["confidence"] == 100
+
+    def test_default_mode_uses_llm_not_offline(self, session):
+        text = f"अहं पश्यामि {uuid.uuid4().hex[:6]}"
+        r = session.post(
+            f"{API}/translate",
+            json={"text": text, "target_langs": ["english"]},
+            timeout=120,
+        )
+        assert r.status_code == 200
+        res = r.json()["results"][0]
+        assert res["source"] in ("llm", "correction")
+        assert res["source"] != "offline"
+
+
 # ---------- clear history ----------
 
 class TestClearHistory:

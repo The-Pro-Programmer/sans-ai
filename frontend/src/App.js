@@ -18,6 +18,8 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import Header from "@/components/Header";
 import TranslationCard from "@/components/TranslationCard";
 import HistorySheet from "@/components/HistorySheet";
+import VoiceInput from "@/components/VoiceInput";
+import OfflineModeToggle from "@/components/OfflineModeToggle";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -37,6 +39,7 @@ function Translator() {
     const [result, setResult] = useState(null); // { id, sanskrit_text, results, timestamp }
     const [history, setHistory] = useState([]);
     const [historyOpen, setHistoryOpen] = useState(false);
+    const [offlineMode, setOfflineMode] = useState(false);
 
     const fetchHistory = async () => {
         try {
@@ -64,6 +67,7 @@ function Translator() {
             const { data } = await axios.post(`${API}/translate`, {
                 text,
                 target_langs: langs,
+                offline_mode: offlineMode,
             });
             setResult(data);
             fetchHistory();
@@ -136,14 +140,24 @@ function Translator() {
                                     Sanskrit input
                                 </span>
                             </div>
-                            <button
-                                data-testid="sample-btn"
-                                type="button"
-                                onClick={fillSample}
-                                className="label-tiny text-muted-foreground hover:text-primary"
-                            >
-                                try a sample
-                            </button>
+                            <div className="flex items-center gap-1">
+                                <VoiceInput
+                                    onTranscript={(t) =>
+                                        setSanskrit((prev) =>
+                                            prev ? `${prev} ${t}` : t,
+                                        )
+                                    }
+                                />
+                                <span className="mx-1 h-4 w-px bg-border" />
+                                <button
+                                    data-testid="sample-btn"
+                                    type="button"
+                                    onClick={fillSample}
+                                    className="label-tiny px-2 text-muted-foreground hover:text-primary"
+                                >
+                                    try a sample
+                                </button>
+                            </div>
                         </div>
 
                         <Textarea
@@ -213,6 +227,13 @@ function Translator() {
                                 source appears — so the tool grows sharper with
                                 use.
                             </p>
+                        </div>
+
+                        <div className="mt-4">
+                            <OfflineModeToggle
+                                enabled={offlineMode}
+                                onChange={setOfflineMode}
+                            />
                         </div>
                     </div>
 
