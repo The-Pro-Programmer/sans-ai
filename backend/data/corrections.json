@@ -1,0 +1,12 @@
+{
+  "hindi::कर्म एव धर्मः a046ce": {
+    "sanskrit_text": "कर्म एव धर्मः a046ce",
+    "target_lang": "hindi",
+    "corrected_text": "कर्म ही धर्म है (CORRECTED)"
+  },
+  "hindi::सत्यमेव जयते": {
+    "sanskrit_text": "सत्यमेव जयते",
+    "target_lang": "hindi",
+    "corrected_text": "सत्य की ही विजय होती है (UI TEST)"
+  }
+}

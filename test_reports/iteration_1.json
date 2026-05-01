@@ -1,0 +1,42 @@
+{
+  "summary": "First-run end-to-end testing of the Sanskrit→Marathi/Hindi/English translator. Both backend and frontend validated. 12/12 backend pytests pass covering health, translate (single/all/empty/missing), history, feedback (up/down/404/empty-correction), feedback/v2 alias, corrections learning loop (LLM→correction after negative feedback with confidence=100 and source='correction'), and history clear. Frontend Playwright flow verified: page load, brand text, sample-btn, language selector filter (Hindi => 1 card), translate button, theme toggle, copy with toast, thumbs-down + correction submit + 'learned' source badge after re-translate, history open, click history item to reload, clear history.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/translate", "issue": "Whitespace-only text returns 422 via Pydantic (min_length=1 triggers before strip). Acceptable but doesn't match the stated '400 for empty text' contract when text is all whitespace. Non-whitespace empty string ('') returns 422 as well. Test was relaxed to accept 400 or 422."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "HistorySheet at 1280px viewport", "issues": ["Right-side Sheet (max-w-lg) can extend partially beyond the viewport causing history items to be clipped on the right edge at narrower desktop widths; consider constraining width or adding overflow handling. Lower-priority cosmetic issue."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: align /api/translate empty-text contract — currently Pydantic min_length=1 returns 422 for '' before the 400 branch can execute; only whitespace-then-strip yields the 400. If the contract requires 400, relax min_length and rely on the runtime strip check.",
+    "Optional: tighten HistorySheet width on ~1280px desktops to avoid right-edge clipping."
+  ],
+  "critical_code_review_comments": [
+    "server.py imports private helpers (_read_json, _write_json, HISTORY_FILE) from translator.py below the top — works but discouraged; promote to a proper public helper or encapsulate _persist_feedback inside translator.py.",
+    "translator.py: `update_history_feedback` defines a different shape (writes string to 'feedback') than _persist_feedback (dict keyed by language). Dead/conflicting code — remove to avoid confusion.",
+    "translator.py: LLM JSON fallback silently returns the raw text with confidence=50 on parse failure — add logging so silent regressions are observable.",
+    "TranslationCard.copy uses navigator.clipboard without an HTTP/HTTPS/context guard; okay in this preview (HTTPS) but the silent catch hides the reason for failure.",
+    "JSON file store is not concurrency-safe (read-modify-write) — fine for single-process dev but a note for future scale.",
+    "Corrections/history have no size/TTL beyond history[:200]; corrections.json will grow unbounded."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py (new pytest suite)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "none (no auth in this app)",
+  "seed_data_creation": "Tests create unique-suffixed Sanskrit inputs per run and clear history via /api/history DELETE. A real correction (hindi) for text 'सत्यमेव जयते' was stored during UI testing (correction text 'सत्य की ही विजय होती है (UI TEST)'), persisted in /app/backend/data/corrections.json.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend pytest file at /app/backend/tests/backend_test.py. Run with: REACT_APP_BACKEND_URL set, `python -m pytest /app/backend/tests/backend_test.py -v`. LLM calls go through Claude Sonnet 4.5 via emergentintegrations — each translate call takes ~2–6s; all-three-language call ~6–12s. Corrections file persists between runs; tests use unique UUID suffixes to avoid false-positive 'correction' sources. UI history sheet is right-side drawer (max-w-lg); click target may fall outside default 1920-wide viewport at ≥1720px x; scroll_into_view_if_needed + force=True works at 1280px.",
+  "rca of the issue": "No blocking issues. Hybrid correction-first + LLM-fallback loop verified end-to-end: (1) first translate for a novel text returns source='llm'; (2) POST /api/feedback with is_correct=false + correction persists into corrections.json; (3) subsequent translate for identical text returns source='correction', confidence=100, and the corrected text — this was validated both via pytest (test_negative_feedback_saves_correction_and_reapplies) and via the UI (source-badge-hindi 'learned' visible, translated-text-hindi equals the submitted correction)."
+}

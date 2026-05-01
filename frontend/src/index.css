@@ -2,74 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    margin: 0;
-    font-family:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-code {
-    font-family:
-        source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
-}
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap");
 
 @layer base {
     :root {
-        --background: 0 0% 100%;
-        --foreground: 0 0% 3.9%;
+        /* Archetype 1 – Organic & Earthy (light) */
+        --background: 36 40% 97%;          /* #FDFBF7 */
+        --foreground: 0 0% 7%;             /* #111111 */
+        --surface: 0 0% 100%;              /* #FFFFFF */
         --card: 0 0% 100%;
-        --card-foreground: 0 0% 3.9%;
+        --card-foreground: 0 0% 7%;
         --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 3.9%;
-        --primary: 0 0% 9%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 0 0% 96.1%;
-        --secondary-foreground: 0 0% 9%;
-        --muted: 0 0% 96.1%;
-        --muted-foreground: 0 0% 45.1%;
-        --accent: 0 0% 96.1%;
-        --accent-foreground: 0 0% 9%;
-        --destructive: 0 84.2% 60.2%;
+        --popover-foreground: 0 0% 7%;
+        --primary: 24 82% 42%;             /* #D35400 terracotta */
+        --primary-foreground: 36 40% 97%;
+        --secondary: 36 30% 94%;
+        --secondary-foreground: 0 0% 7%;
+        --muted: 36 25% 92%;
+        --muted-foreground: 0 0% 33%;      /* #555 */
+        --accent: 24 82% 42%;
+        --accent-foreground: 36 40% 97%;
+        --destructive: 0 72% 45%;
         --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 89.8%;
-        --input: 0 0% 89.8%;
-        --ring: 0 0% 3.9%;
-        --chart-1: 12 76% 61%;
-        --chart-2: 173 58% 39%;
-        --chart-3: 197 37% 24%;
-        --chart-4: 43 74% 66%;
-        --chart-5: 27 87% 67%;
-        --radius: 0.5rem;
+        --border: 35 22% 87%;              /* #E5E0D8 */
+        --input: 35 22% 87%;
+        --ring: 24 82% 42%;
+        --radius: 0.25rem;
     }
     .dark {
-        --background: 0 0% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 0 0% 3.9%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 3.9%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 0 0% 9%;
-        --secondary: 0 0% 14.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 0 0% 14.9%;
-        --muted-foreground: 0 0% 63.9%;
-        --accent: 0 0% 14.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 14.9%;
-        --input: 0 0% 14.9%;
-        --ring: 0 0% 83.1%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
+        /* Archetype 5 – Jewel & Luxury (dark) */
+        --background: 228 24% 5%;          /* #090A0F */
+        --foreground: 39 32% 88%;          /* #E8E3D9 */
+        --surface: 228 20% 9%;             /* #12141D */
+        --card: 228 20% 9%;
+        --card-foreground: 39 32% 88%;
+        --popover: 228 20% 9%;
+        --popover-foreground: 39 32% 88%;
+        --primary: 46 65% 52%;             /* #D4AF37 royal gold */
+        --primary-foreground: 228 24% 5%;
+        --secondary: 228 18% 13%;
+        --secondary-foreground: 39 32% 88%;
+        --muted: 228 18% 13%;
+        --muted-foreground: 38 11% 59%;    /* #A09B90 */
+        --accent: 46 65% 52%;
+        --accent-foreground: 228 24% 5%;
+        --destructive: 0 60% 45%;
+        --destructive-foreground: 39 32% 88%;
+        --border: 228 18% 16%;             /* #222532 */
+        --input: 228 18% 16%;
+        --ring: 46 65% 52%;
     }
 }
 
@@ -77,8 +58,58 @@ code {
     * {
         @apply border-border;
     }
+    html {
+        font-family: "Outfit", system-ui, sans-serif;
+    }
     body {
         @apply bg-background text-foreground;
+        font-family: "Outfit", system-ui, sans-serif;
+        letter-spacing: 0.01em;
+        transition: background-color 300ms ease-in-out, color 300ms ease-in-out;
+    }
+
+    /* Subtle Indic texture overlay */
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background-image: url("https://images.unsplash.com/photo-1754129534696-ec82db23e957?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwyfHxhbmNpZW50JTIwbWFudXNjcmlwdCUyMGluZGlhfGVufDB8fHx8MTc3NzY1NzE5MHww&ixlib=rb-4.1.0&q=85");
+        background-size: cover;
+        background-position: center;
+        opacity: 0.035;
+        mix-blend-mode: multiply;
+    }
+    .dark body::before {
+        opacity: 0.05;
+        mix-blend-mode: screen;
+    }
+
+    h1, h2, h3, .font-display {
+        font-family: "Cormorant Garamond", serif;
+        letter-spacing: -0.01em;
+    }
+
+    .font-devanagari {
+        font-family: "Noto Sans Devanagari", "Outfit", sans-serif;
+    }
+
+    .label-tiny {
+        @apply text-xs uppercase;
+        letter-spacing: 0.2em;
+    }
+
+    .glass-header {
+        background-color: hsl(var(--background) / 0.7);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+    /* Selection */
+    ::selection {
+        background: hsl(var(--primary) / 0.25);
+        color: hsl(var(--foreground));
     }
 }
 
@@ -86,7 +117,6 @@ code {
     [data-debug-wrapper="true"] {
         display: contents !important;
     }
-
     [data-debug-wrapper="true"] > * {
         margin-left: inherit;
         margin-right: inherit;
